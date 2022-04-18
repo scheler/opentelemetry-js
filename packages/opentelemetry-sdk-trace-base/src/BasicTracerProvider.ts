@@ -72,7 +72,7 @@ export class BasicTracerProvider implements TracerProvider {
   private readonly _tracers: Map<string, Tracer> = new Map();
 
   activeSpanProcessor: SpanProcessor;
-  readonly resource: Resource;
+  resource: Resource;
 
   constructor(config: TracerConfig = {}) {
     const mergedConfig = merge({}, DEFAULT_CONFIG, reconfigureLimits(config));
@@ -201,6 +201,11 @@ export class BasicTracerProvider implements TracerProvider {
 
   shutdown(): Promise<void> {
     return this.activeSpanProcessor.shutdown();
+  }
+
+  updateResource(resource: Resource) : void {
+    this.resource = resource;
+    this._tracers.forEach( tracer => tracer.updateResource(resource));
   }
 
   protected _getPropagator(name: string): TextMapPropagator | undefined {

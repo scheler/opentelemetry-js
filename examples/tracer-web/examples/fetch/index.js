@@ -2,6 +2,7 @@ import { context, trace } from '@opentelemetry/api';
 import { ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { SessionProvider, SimpleSessionManager } from '@opentelemetry/sdk-trace-base';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { B3Propagator } from '@opentelemetry/propagator-b3';
@@ -31,6 +32,11 @@ registerInstrumentations({
     }),
   ],
 });
+
+
+const sessionProvider = new SessionProvider();
+sessionProvider.addSessionManager("default", new SimpleSessionManager());
+sessionProvider.register(provider);
 
 const webTracerWithZone = provider.getTracer('example-tracer-web');
 

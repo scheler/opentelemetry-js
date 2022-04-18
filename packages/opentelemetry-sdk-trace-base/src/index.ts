@@ -27,3 +27,4 @@ export * from './Span';
 export * from './SpanProcessor';
 export * from './TimedEvent';
 export * from './types';
+export * from './session';

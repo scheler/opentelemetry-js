@@ -37,7 +37,7 @@ export class Tracer implements api.Tracer {
   private readonly _generalLimits: GeneralLimits;
   private readonly _spanLimits: SpanLimits;
   private readonly _idGenerator: IdGenerator;
-  readonly resource: Resource;
+  resource: Resource;
   readonly instrumentationLibrary: InstrumentationLibrary;
 
   /**
@@ -229,5 +229,9 @@ export class Tracer implements api.Tracer {
 
   getActiveSpanProcessor(): SpanProcessor {
     return this._tracerProvider.getActiveSpanProcessor();
+  }
+
+  updateResource(resource: Resource) : void {
+    this.resource = resource;
   }
 }
