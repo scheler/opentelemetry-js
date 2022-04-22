@@ -20,7 +20,7 @@ import { ResourceAttributes } from './types';
 import { defaultServiceName } from './platform';
 
 /**
- * A Resource describes the entity for which a signals (metrics or trace) are
+ * A Resource describes the entity for which signals (metrics, trace, or logs) are
  * collected.
  */
 export class Resource {

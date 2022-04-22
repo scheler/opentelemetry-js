@@ -22,7 +22,7 @@ import {
   sanitizeAttributes,
   isTracingSuppressed,
 } from '@opentelemetry/core';
-import { Resource } from '@opentelemetry/resources';
+import { ResourceProvider } from '@opentelemetry/resources';
 import { BasicTracerProvider } from './BasicTracerProvider';
 import { Span } from './Span';
 import { GeneralLimits, SpanLimits, TracerConfig } from './types';
@@ -37,7 +37,7 @@ export class Tracer implements api.Tracer {
   private readonly _generalLimits: GeneralLimits;
   private readonly _spanLimits: SpanLimits;
   private readonly _idGenerator: IdGenerator;
-  resource: Resource;
+  readonly resourceProvider: ResourceProvider;
   readonly instrumentationLibrary: InstrumentationLibrary;
 
   /**
@@ -53,7 +53,7 @@ export class Tracer implements api.Tracer {
     this._generalLimits = localConfig.generalLimits;
     this._spanLimits = localConfig.spanLimits;
     this._idGenerator = config.idGenerator || new RandomIdGenerator();
-    this.resource = _tracerProvider.resource;
+    this.resourceProvider = _tracerProvider.resourceProvider;
     this.instrumentationLibrary = instrumentationLibrary;
   }
 
@@ -229,9 +229,5 @@ export class Tracer implements api.Tracer {
 
   getActiveSpanProcessor(): SpanProcessor {
     return this._tracerProvider.getActiveSpanProcessor();
-  }
-
-  updateResource(resource: Resource) : void {
-    this.resource = resource;
   }
 }

@@ -30,7 +30,7 @@ import {
   getEnv,
   merge,
 } from '@opentelemetry/core';
-import { Resource } from '@opentelemetry/resources';
+import { ResourceProvider } from '@opentelemetry/resources';
 import { SpanProcessor, Tracer } from '.';
 import { DEFAULT_CONFIG } from './config';
 import { MultiSpanProcessor } from './MultiSpanProcessor';
@@ -72,14 +72,13 @@ export class BasicTracerProvider implements TracerProvider {
   private readonly _tracers: Map<string, Tracer> = new Map();
 
   activeSpanProcessor: SpanProcessor;
-  resource: Resource;
+  resourceProvider: ResourceProvider;
 
   constructor(config: TracerConfig = {}) {
     const mergedConfig = merge({}, DEFAULT_CONFIG, reconfigureLimits(config));
-    this.resource = mergedConfig.resource ?? Resource.empty();
-    this.resource = Resource.default().merge(this.resource);
+    this.resourceProvider = mergedConfig.resourceProvider ?? ResourceProvider.DEFAULT;
     this._config = Object.assign({}, mergedConfig, {
-      resource: this.resource,
+      resourceProvider: this.resourceProvider,
     });
 
     const defaultExporter = this._buildExporterFromEnv();
@@ -201,11 +200,6 @@ export class BasicTracerProvider implements TracerProvider {
 
   shutdown(): Promise<void> {
     return this.activeSpanProcessor.shutdown();
-  }
-
-  updateResource(resource: Resource) : void {
-    this.resource = resource;
-    this._tracers.forEach( tracer => tracer.updateResource(resource));
   }
 
   protected _getPropagator(name: string): TextMapPropagator | undefined {
