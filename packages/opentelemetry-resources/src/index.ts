@@ -15,6 +15,7 @@
  */
 
 export * from './Resource';
+export * from './ResourceProvider';
 export * from './platform';
 export * from './types';
 export * from './config';

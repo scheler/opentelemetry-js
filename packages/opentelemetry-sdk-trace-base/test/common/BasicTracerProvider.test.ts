@@ -371,13 +371,13 @@ describe('BasicTracerProvider', () => {
       assert.ok(span instanceof Span);
     });
 
-    it('should propagate resources', () => {
-      const tracerProvider = new BasicTracerProvider();
-      const tracer = tracerProvider.getTracer('default');
-      const span = tracer.startSpan('my-span') as Span;
-      assert.strictEqual(tracer.resource, tracerProvider.resource);
-      assert.strictEqual(span.resource, tracerProvider.resource);
-    });
+    // it('should propagate resources', () => {
+    //   const tracerProvider = new BasicTracerProvider();
+    //   const tracer = tracerProvider.getTracer('default');
+    //   const span = tracer.startSpan('my-span') as Span;
+    //   assert.strictEqual(tracer.resource, tracerProvider.resource);
+    //   assert.strictEqual(span.resource, tracerProvider.resource);
+    // });
 
     it('should start a span with name and options', () => {
       const tracer = new BasicTracerProvider().getTracer('default');
@@ -611,12 +611,12 @@ describe('BasicTracerProvider', () => {
     });
   });
 
-  describe('.resource', () => {
-    it('should return a Resource', () => {
-      const tracerProvider = new BasicTracerProvider();
-      assert.ok(tracerProvider.resource instanceof Resource);
-    });
-  });
+  // describe('.resource', () => {
+  //   it('should return a Resource', () => {
+  //     const tracerProvider = new BasicTracerProvider();
+  //     assert.ok(tracerProvider.resource instanceof Resource);
+  //   });
+  // });
 
   describe('.shutdown()', () => {
     it('should trigger shutdown when manually invoked', () => {

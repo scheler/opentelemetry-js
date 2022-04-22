@@ -20,7 +20,7 @@ import {
   hrTimeToMicroseconds,
   VERSION,
 } from '@opentelemetry/core';
-import { Resource } from '@opentelemetry/resources';
+import { Resource, ResourceProvider } from '@opentelemetry/resources';
 import { BasicTracerProvider, Span } from '@opentelemetry/sdk-trace-base';
 import * as assert from 'assert';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
@@ -33,15 +33,17 @@ import {
 } from '../../src/transform';
 import * as zipkinTypes from '../../src/types';
 const tracer = new BasicTracerProvider({
-  resource: Resource.default().merge(
-    new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: 'zipkin-test',
-    })
+  resourceProvider: new ResourceProvider(
+    Resource.default().merge(
+      new Resource({
+        [SemanticResourceAttributes.SERVICE_NAME]: 'zipkin-test',
+      })
+    )
   ),
 }).getTracer('default');
 
 const language =
-  tracer.resource.attributes[SemanticResourceAttributes.TELEMETRY_SDK_LANGUAGE];
+  tracer.resourceProvider.getResource().attributes[SemanticResourceAttributes.TELEMETRY_SDK_LANGUAGE];
 
 const parentId = '5c1c63257de34c67';
 const spanContext: api.SpanContext = {

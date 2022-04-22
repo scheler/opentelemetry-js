@@ -18,7 +18,7 @@ import { TextMapPropagator, Sampler } from '@opentelemetry/api';
 import { IdGenerator } from '@opentelemetry/core';
 
 import { ContextManager } from '@opentelemetry/api';
-import { Resource } from '@opentelemetry/resources';
+import { ResourceProvider } from '@opentelemetry/resources';
 
 /**
  * TracerConfig provides an interface for configuring a Basic Tracer.
@@ -35,8 +35,8 @@ export interface TracerConfig {
   /** Span Limits */
   spanLimits?: SpanLimits;
 
-  /** Resource associated with trace telemetry  */
-  resource?: Resource;
+  /** Provider for resources */
+  resourceProvider?: ResourceProvider;
 
   /**
    * Generator of trace and span IDs
