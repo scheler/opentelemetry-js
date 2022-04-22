@@ -23,6 +23,9 @@ const traceProvider = new WebTracerProvider({
 const sessionManager = new SimpleSessionManager('default', resourceProvider);
 sessionManager.createSession();
 
+const sessionManager2 = new SimpleSessionManager('session2', resourceProvider);
+sessionManager2.createSession();
+
 // Note: For production consider using the "BatchSpanProcessor" to reduce the number of requests
 // to your exporter. Using the SimpleSpanProcessor here as it sends the spans immediately to the
 // exporter without delay
@@ -73,15 +76,15 @@ const prepareClickEvent = () => {
         singleSpan.end();
       });
     });
-    for (let i = 0, j = 5; i < j; i += 1) {
-      const span = webTracerWithZone.startSpan(`files-series-info-${i}`);
-      context.with(trace.setSpan(context.active(), span), () => {
-        getData(url).then((_data) => {
-          trace.getSpan(context.active()).addEvent(`fetching-span-${i}-completed`);
-          span.end();
-        });
-      });
-    }
+    // for (let i = 0, j = 5; i < j; i += 1) {
+    //   const span = webTracerWithZone.startSpan(`files-series-info-${i}`);
+    //   context.with(trace.setSpan(context.active(), span), () => {
+    //     getData(url).then((_data) => {
+    //       trace.getSpan(context.active()).addEvent(`fetching-span-${i}-completed`);
+    //       span.end();
+    //     });
+    //   });
+    // }
   };
   element.addEventListener('click', onClick);
 };
