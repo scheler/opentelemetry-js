@@ -7,17 +7,30 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { B3Propagator } from '@opentelemetry/propagator-b3';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { Resource, ResourceProvider } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
-const provider = new WebTracerProvider();
+const resource = new Resource({
+  [SemanticResourceAttributes.SERVICE_NAME]: 'fetch-example',
+});
+
+const resourceProvider = new ResourceProvider(resource); 
+
+const traceProvider = new WebTracerProvider({
+  resourceProvider: resourceProvider 
+});
+
+const sessionManager = new SimpleSessionManager('default', resourceProvider);
+sessionManager.createSession();
 
 // Note: For production consider using the "BatchSpanProcessor" to reduce the number of requests
 // to your exporter. Using the SimpleSpanProcessor here as it sends the spans immediately to the
 // exporter without delay
-provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
-provider.addSpanProcessor(new SimpleSpanProcessor(new OTLPTraceExporter()));
-provider.register({
+traceProvider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+// traceProvider.addSpanProcessor(new SimpleSpanProcessor(new OTLPTraceExporter()));
+traceProvider.register({
   contextManager: new ZoneContextManager(),
-  propagator: new B3Propagator(),
+  propagator: new B3Propagator()
 });
 
 registerInstrumentations({
@@ -33,12 +46,10 @@ registerInstrumentations({
   ],
 });
 
+// const sessionProvider = new SessionProvider(resourceProvider);
+// sessionProvider.addSessionManager("default", new SimpleSessionManager());
 
-const sessionProvider = new SessionProvider();
-sessionProvider.addSessionManager("default", new SimpleSessionManager());
-sessionProvider.register(provider);
-
-const webTracerWithZone = provider.getTracer('example-tracer-web');
+const webTracerWithZone = traceProvider.getTracer('example-tracer-web');
 
 const getData = (url) => fetch(url, {
   method: 'GET',

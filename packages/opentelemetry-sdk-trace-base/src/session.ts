@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-import { Resource, ResourceAttributes } from '@opentelemetry/resources';
-import { BasicTracerProvider } from './BasicTracerProvider';
+import { Resource, ResourceProvider, ResourceAttributes } from '@opentelemetry/resources';
 
 export class SessionProvider {
     private readonly _sessionManagers: Map<string, SessionManager> = new Map();
+    readonly resourceProvider: ResourceProvider;
+
+    constructor(resourceProvider: ResourceProvider) {
+        this.resourceProvider = resourceProvider;
+    }
 
     addSessionManager(name: string, sessionManager: SessionManager) {
         this._sessionManagers.set(name, sessionManager);
-    }
-
-    // Register with each provider separately.
-    register(tracerProvider: BasicTracerProvider): void {
-        for (const [name, sessionManager] of this._sessionManagers) {
-            sessionManager.attach(name, tracerProvider);
-        }
     }
 }
 
@@ -56,7 +53,6 @@ export class SessionContext {
     static getKey(name: string): string {
         return `session.${name}.id`;
     }
-
 }
 
 export interface SessionPersister {
@@ -107,33 +103,21 @@ export class BrowserSessionStorageSessionPersister {
     }
     delete(_name: string): void {
     }
-
 }
 
 export class SessionManager {
-
-    private _name: string | null = null;
+    private _name: string;
     private _sessionContext: SessionContext | null = null;
-    private _tracerProvider?: BasicTracerProvider;
     private _sessionPersister: SessionPersister;
+    private _resourceProvider: ResourceProvider;
 
-    constructor(sessionPersister: SessionPersister) {
+    constructor(name: string, resourceProvider: ResourceProvider, sessionPersister: SessionPersister) {
+        this._name = name ?? 'default';
         this._sessionPersister = sessionPersister || new CookiesSessionPersister();
-    }
-
-    attach(name: string, tracerProvider: BasicTracerProvider) {
-        this._name = name;
-        this._tracerProvider = tracerProvider;
-
-        this._sessionContext = this._sessionPersister.load(this._name) || new SessionContext();
-        this.updateResource();
+        this._resourceProvider = resourceProvider;
     }
 
     createSession(): void {
-        if (this._tracerProvider == null || this._name == null) {
-            return;
-        }
-
         this.endSession();
         this._sessionContext = new SessionContext();
         this._sessionPersister?.save(this._name, this._sessionContext);
@@ -142,27 +126,24 @@ export class SessionManager {
     }
 
     endSession(): void {
-        if (this._tracerProvider == null || this._name == null) {
-            return;
-        }
-
-        const attributes: ResourceAttributes = this._tracerProvider.resource.attributes;
+        const attributes: ResourceAttributes = this._resourceProvider.getResource().attributes;
         delete attributes[SessionContext.getKey(this._name)];
-        this._tracerProvider.updateResource(new Resource(attributes));
+
+        this.updateResource();
     }
 
     private updateResource() {
-        if (this._tracerProvider && this._sessionContext && this._name) {
-            const resource: Resource = this._tracerProvider.resource.merge(
+        if (this._sessionContext && this._name) {
+            const resource: Resource = this._resourceProvider.getResource().merge(
                                      new Resource(this._sessionContext.get(this._name) as ResourceAttributes));
-            this._tracerProvider.updateResource(resource);
+            this._resourceProvider.updateResource(resource);
         }
     }
 }
 
 export class SimpleSessionManager extends SessionManager{
-    constructor() {
-        super(new CookiesSessionPersister());
+    constructor(name: string, resourceProvider: ResourceProvider) {
+        super(name, resourceProvider, new CookiesSessionPersister());
         setTimeout(() =>  this.reset(), 15000);
     }
 
