@@ -43,7 +43,7 @@ const tracer = new BasicTracerProvider({
 }).getTracer('default');
 
 const language =
-  tracer.resource.attributes[SemanticResourceAttributes.TELEMETRY_SDK_LANGUAGE];
+  tracer.resourceProvider.getResource().attributes[SemanticResourceAttributes.TELEMETRY_SDK_LANGUAGE];
 
 const parentId = '5c1c63257de34c67';
 const spanContext: api.SpanContext = {
