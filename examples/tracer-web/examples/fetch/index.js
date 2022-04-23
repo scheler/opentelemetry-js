@@ -20,11 +20,15 @@ const traceProvider = new WebTracerProvider({
   resourceProvider: resourceProvider 
 });
 
-const sessionManager = new SimpleSessionManager('default', resourceProvider);
-sessionManager.createSession();
+const sessionManager = new SimpleSessionManager('default', resourceProvider, 1800);
+if (!sessionManager.hasActiveSession) {
+  sessionManager.createSession();
+}
 
 const sessionManager2 = new SimpleSessionManager('session2', resourceProvider);
-sessionManager2.createSession();
+if (!sessionManager2.hasActiveSession) {
+  sessionManager2.createSession();
+}
 
 // Note: For production consider using the "BatchSpanProcessor" to reduce the number of requests
 // to your exporter. Using the SimpleSpanProcessor here as it sends the spans immediately to the

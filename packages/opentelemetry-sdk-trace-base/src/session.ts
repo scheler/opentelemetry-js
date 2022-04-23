@@ -57,18 +57,33 @@ export class SessionContext {
 
 export interface SessionPersister {
     save(name: string, sessionContext: SessionContext): void;
-    load(name: string): SessionContext;
+    load(name: string): SessionContext | null;
     delete(name: string): void;
 }
 
 export class CookiesSessionPersister {
-    save(name: string, sessionContext: SessionContext): void {
-        document.cookie = `${SessionContext.getKey(name)}=${sessionContext.getId()}`;
+    private _maxAge: number | undefined;
 
+    constructor(maxAge?: number) {
+        this._maxAge = maxAge;
     }
-    load(name: string): SessionContext {
-        return new SessionContext(CookiesSessionPersister.getCookie(SessionContext.getKey(name)));
+
+    save(name: string, sessionContext: SessionContext): void {
+        let cookieContent = `${SessionContext.getKey(name)}=${sessionContext.getId()}`;
+        if (this._maxAge !== undefined) {
+            cookieContent += `;max-age=${this._maxAge}`;
+        }
+        document.cookie = cookieContent;
     }
+
+    load(name: string): SessionContext | null {
+        const cookie = CookiesSessionPersister.getCookie(SessionContext.getKey(name));
+        if (cookie) {
+            return new SessionContext(cookie);
+        }
+        return null;
+    }
+
     delete(name: string): void {
         CookiesSessionPersister.deleteCookie(SessionContext.getKey(name));
     }
@@ -115,6 +130,15 @@ export class SessionManager {
         this._name = name ?? 'default';
         this._sessionPersister = sessionPersister || new CookiesSessionPersister();
         this._resourceProvider = resourceProvider;
+
+        this._sessionContext = this._sessionPersister.load(this._name);
+        if (this._sessionContext != null) {
+            this.updateResource();
+        }
+    }
+
+    get hasActiveSession() {
+        return this._sessionContext != null;
     }
 
     createSession(): void {
@@ -135,20 +159,14 @@ export class SessionManager {
     private updateResource() {
         if (this._sessionContext && this._name) {
             const resource: Resource = this._resourceProvider.getResource().merge(
-                                     new Resource(this._sessionContext.get(this._name) as ResourceAttributes));
+                new Resource(this._sessionContext.get(this._name) as ResourceAttributes));
             this._resourceProvider.updateResource(resource);
         }
     }
 }
 
 export class SimpleSessionManager extends SessionManager{
-    constructor(name: string, resourceProvider: ResourceProvider) {
-        super(name, resourceProvider, new CookiesSessionPersister());
-        setTimeout(() =>  this.reset(), 15000);
-    }
-
-    reset() {
-        super.endSession();
-        super.createSession();
+    constructor(name: string, resourceProvider: ResourceProvider, timeoutSeconds: number) {
+        super(name, resourceProvider, new CookiesSessionPersister(timeoutSeconds));
     }
 }
