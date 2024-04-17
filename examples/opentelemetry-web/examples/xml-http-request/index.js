@@ -35,10 +35,12 @@ class MyContextPropagator extends TextMapPropagator {
         const traceParent = this.buildTraceparent(spanContext);
         carrier.body = carrier.body.replaceAll(TRACEPARENT_PLACEHOLDER, traceParent);
       }
-    } else {
-      // use the default W3CTraceContextPropagator
-      this._w3cPropagator.inject(context, carrier, setter);
     }
+    if (typeof carrier.headers === 'object' && carrier.hasOwnProperty('headers')) {
+      // use the default W3CTraceContextPropagator
+      this._w3cPropagator.inject(context, carrier.headers, setter);
+    }
+
   }
 
   extract(context, carrier, getter) {

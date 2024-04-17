@@ -508,9 +508,14 @@ export class XMLHttpRequestInstrumentation extends InstrumentationBase<XMLHttpRe
               if (addContextToHeaders) {
                 plugin._addHeaders(this, spanUrl);
               } else {
-                let bodyWrapper = {body: args[0]};
-                api.propagation.inject(api.context.active(), bodyWrapper);
-                args[0] = bodyWrapper.body;
+                const headers: { [key: string]: unknown } = {};
+                let carrier = {body: args[0], headers: headers};
+                api.propagation.inject(api.context.active(), carrier);
+
+                args[0] = carrier.body;
+                Object.keys(headers).forEach(key => {
+                  this.setRequestHeader(key, String(headers[key]));
+                });
               }
               plugin._addResourceObserver(this, spanUrl);
 
